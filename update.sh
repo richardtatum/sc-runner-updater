@@ -58,7 +58,6 @@ RestartLutrisCheck() {
       fi
     elif [ $restart_lutris == 0 ]; then
       exit 0
-    fi
     else
       RestartLutris
     fi
