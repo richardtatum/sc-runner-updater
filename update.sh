@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-base_url="https://github.com/snatella/wine-runner-sc/releases"
 latest_url="https://api.github.com/repos/snatella/wine-runner-sc/releases/latest"
 install_complete=false;
 base_path="$HOME/.local/share/lutris/runners/wine" #### Destination folder of the wine installations
@@ -36,6 +35,7 @@ InstallWineRunner() {
   }
   curl -sL "$url" | tar xfzv - -C "$dest_path"
   install_complete=true
+  echo "Installation completed"
   RestartLutrisCheck
 }
 
@@ -99,7 +99,7 @@ read -ra option_install
 case "$option_install" in
     [1-9])
         if (( $option_install <= ${#download_options[@]} )); then
-          option=$(echo "${download_options[$option_install -1]}")
+          option=${download_options[$option_install -1]}
           version=$(echo "$option" | sed 's/\.[^.]*$//') 
           url=$(curl -s "$latest_url" | grep -E "browser_download_url.*$option" | cut -d \" -f4)
           echo "Installing $version"
