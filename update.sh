@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 latest_url="https://api.github.com/repos/snatella/wine-runner-sc/releases/latest"
-base_path="$HOME/.local/share/lutris/runners/wine" # Default location of Lutris wine runner /
+base_path="$HOME/.local/share/lutris/runners/wine" # Default location of Lutris wine runner
 download_options=($(curl -s "$latest_url" | grep -E "browser_download_url.*tgz" | cut -d \" -f4 | cut -d / -f9))
 install_complete=false;
 restart_lutris=2
@@ -54,27 +54,29 @@ RestartLutrisCheck() {
       if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
         RestartLutris
       else
-        exit 2
+        exit 0
       fi
     elif [ $restart_lutris == 0 ]; then
       exit 0
     fi
-    RestartLutris
+    else
+      RestartLutris
+    fi
   fi
 }
 
 InstallationPrompt() {
-    if [ ! -d "$base_path"/snatella-"$version" ]; then
-        InstallWineRunner
+  if [ ! -d "$base_path"/snatella-"$version" ]; then
+    InstallWineRunner
+  else
+    read -r -p "Do you want to try to download and (re)install this release? <y/N> " prompt
+    if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
+      InstallWineRunner
     else
-        read -r -p "Do you want to try to download and (re)install this release? <y/N> " prompt
-        if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
-            InstallWineRunner
-        else
-            echo "Operation canceled"
-            exit 0
-        fi
+      echo "Operation canceled"
+      exit 0
     fi
+  fi
 }
 
 
