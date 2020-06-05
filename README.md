@@ -35,5 +35,10 @@ You can set some options at the start of the script
 
 `base_path` can be set to whichever directory you usually install your Lutris wine runners to.
 
+## Uninstall
+To uninstall simply remove the script `rm update.sh`.
+
+To uninstall the spicy implementation of this script, simply remove it from its location with `sudo rm /usr/local/bin/sc-updater`
+
 ## License
 This project is licensed under the MIT License
