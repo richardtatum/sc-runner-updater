@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 latest_url="https://api.github.com/repos/snatella/wine-runner-sc/releases/latest"
-install_complete=false;
-base_path="$HOME/.local/share/lutris/runners/wine" #### Destination folder of the wine installations
-restart_lutris=2
+base_path="$HOME/.local/share/lutris/runners/wine" # Default location of Lutris wine runner /
 download_options=($(curl -s "$latest_url" | grep -E "browser_download_url.*tgz" | cut -d \" -f4 | cut -d / -f9))
-#### Set restart_lutris=0 to not restart lutris after installing Wine (Keep process untouched)
-#### Set restart_lutris=1 to autorestart lutris after installing Wine
-#### Set restart_lutris=2 to to get a y/n prompt asking if you want to restart Lutris after each installation.
+install_complete=false;
+restart_lutris=2
+# Set restart_lutris=0 to not restart lutris after installing the runner
+# Set restart_lutris=1 to autorestart lutris after installing the runner
+# Set restart_lutris=2 to ask with a y/n prompt if Lutris is running
 
-
-PrintReleases() {
+PrintRelease() {
   echo "----------Description----------"
   echo ""
   echo "Tatumkhamun's SC Runner Updater"
@@ -79,7 +78,7 @@ InstallationPrompt() {
 }
 
 
-PrintReleases
+PrintRelease
 
 echo "Available runners:"
 for((i=0;i<${#download_options[@]};i++)); do
