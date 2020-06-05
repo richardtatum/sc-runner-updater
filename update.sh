@@ -36,6 +36,7 @@ InstallWineRunner() {
   }
   curl -sL "$url" | tar xfzv - -C "$dest_path"
   install_complete=true
+  RestartLutrisCheck
 }
 
 RestartLutris() {
