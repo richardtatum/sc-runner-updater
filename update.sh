@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-baseuri="https://github.com/snatella/wine-runner-sc/releases"
-latesturi="https://github.com/snatella/wine-runner-sc/releases/latest"
+baseuri="https://api.github.com/repos/snatella/wine-runner-sc/releases"
+latesturi="https://api.github.com/repos/snatella/wine-runner-sc/releases/latest"
 parameter="${1}"
 installComplete=false;
 dstpath="$HOME/.local/share/lutris/runners/wine" #### Destination folder of the wine installations
 restartLutris=2
 autoInstall=false
+download_options=($(curl -s "$latesturi" | grep -E "browser_download_url.*tgz" | cut -d \" -f4 | cut -d / -f9))
 #### Set restartLutris=0 to not restart lutris after installing Wine (Keep process untouched)
 #### Set restartLutris=1 to autorestart lutris after installing Wine
 #### Set restartLutris=2 to to get a y/n prompt asking if you want to restart Lutris after each installation.
@@ -67,41 +68,75 @@ RestartLutrisCheck() {
 }
 
 InstallationPrompt() {
-  if [ "$autoInstall" = true ]; then
     if [ ! -d "$dstpath"/snatella-"$version" ]; then
-      InstallWineRunner
-    fi
-  else
-    read -r -p "Do you want to try to download and (re)install this release? <y/N> " prompt
-    if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
-      InstallWineRunner
+        InstallWineRunner
     else
-      echo "Operation canceled"
-      exit 0
+        read -r -p "Do you want to try to download and (re)install this release? <y/N> " prompt
+        if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
+            InstallWineRunner
+        else
+            echo "Operation canceled"
+            exit 0
+        fi
     fi
-  fi
 }
 
-if [ -z "$parameter" ]; then
-  version="$(curl -s $latesturi | grep -E -m1 "tag_name" | cut -d \" -f4)"
-  url=$(curl -s $latesturi | grep -E -m1 "browser_download_url.*Wine" | cut -d \" -f4)
-  if [ -d "$dstpath"/snatella-"$version" ]; then
-    echo "Wine $version is the latest version and is already installed."
-  else
-    echo "Wine $version is the latest version and is not installed yet."
-  fi
-elif [ "$parameter" == "-l" ]; then
-  PrintReleases
-else
-  url=$baseuri/"$parameter"/snatella-"$parameter".tar.gz
-  if [ -d "$dstpath"/snatella-"$parameter" ]; then
-    echo "Wine $parameter is already installed."
-  else
-    echo "Wine $parameter is not installed yet."
-  fi
-fi
 
-if [ ! "$parameter" == "-l" ]; then
-  InstallationPrompt
-  RestartLutrisCheck
-fi
+
+for((i=0;i<${#download_options[@]};i++)); do
+    number=$(("$i" + 1))
+    version=$(echo "${download_options[i]}" | sed 's/\.[^.]*$//')
+    if [ -d "$dstpath"/snatella-"$version" ]; then
+        echo "$number. $version    [installed]"
+        installed_version=$i
+    else
+        echo "$number. $version"
+    fi
+done
+
+echo -n "Please choose an option to install [1-${#download_options[@]}]:"
+read -ra option_install
+
+case "$option_install" in
+    [0-9])
+        if (( $option_install <= ${#download_options[@]} )); then
+            version=$(echo "${download_options[$(($option_install - 1))]}" | sed 's/\.[^.]*$//') 
+            echo "Installing $version"
+            InstallationPrompt
+        else
+            echo "That is not a valid option"
+        fi
+    ;;
+    *)
+        echo "Not a valid option" 
+    ;;
+esac
+
+
+
+
+
+# if [ -z "$parameter" ]; then
+#   version="$(curl -s $latesturi | grep -E -m1 "tag_name" | cut -d \" -f4)"
+#   url=$(curl -s $latesturi | grep -E -m1 "browser_download_url.*Wine" | cut -d \" -f4)
+#   if [ -d "$dstpath"/snatella-"$version" ]; then
+#     echo "Wine $version is the latest version and is already installed."
+#   else
+#     echo "Wine $version is the latest version and is not installed yet."
+#   fi
+# elif [ "$parameter" == "-l" ]; then
+#   PrintReleases
+# else
+#   url=$baseuri/"$parameter"/snatella-"$parameter".tar.gz
+#   if [ -d "$dstpath"/snatella-"$parameter" ]; then
+#     echo "Wine $parameter is already installed."
+#   else
+#     echo "Wine $parameter is not installed yet."
+#   fi
+# fi
+
+# if [ ! "$parameter" == "-l" ]; then
+#  InstallationPrompt
+#  RestartLutrisCheck
+# fi
+
