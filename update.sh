@@ -97,18 +97,18 @@ echo -n "Please choose an option to install [1-${#download_options[@]}]:"
 read -ra option_install
 
 case "$option_install" in
-    [1-9])
-        if (( $option_install <= ${#download_options[@]} )); then
-          option=${download_options[$option_install -1]}
-          version=$(echo "$option" | sed 's/\.[^.]*$//') 
-          url=$(curl -s "$latest_url" | grep -E "browser_download_url.*$option" | cut -d \" -f4)
-          echo "Installing $version"
-          InstallationPrompt
-        else
-          echo "That is not a valid option"
-        fi
-    ;;
-    *)
-        echo "Not a valid option" 
-    ;;
+  [1-9])
+    if (( $option_install <= ${#download_options[@]} )); then
+      option=${download_options[$option_install -1]}
+      version=$(echo "$option" | sed 's/\.[^.]*$//') 
+      url=$(curl -s "$latest_url" | grep -E "browser_download_url.*$option" | cut -d \" -f4)
+      echo "Installing $version"
+      InstallationPrompt
+    else
+      echo "That is not a valid option"
+    fi
+  ;;
+  *)
+    echo "Not a valid option" 
+  ;;
 esac
