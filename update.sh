@@ -65,7 +65,7 @@ DeleteRunnersCheck() {
         if (( $option_remove<= ${#installed_versions[@]} )); then
             remove_option=${installed_versions[$option_remove -1]}
             echo "removing $remove_option"
-            DeleteRunnerPromt
+            DeleteRunnerPrompt
         else
             echo "That is not a valid option"
         fi
@@ -76,7 +76,7 @@ DeleteRunnersCheck() {
     esac
 }
 
-DeleteRunnerPromt() {
+DeleteRunnerPrompt() {
     read -r -p "Do you really want to permanently delete this runner? <y/N> " prompt
     if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
       DeleteRunner
