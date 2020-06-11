@@ -3,6 +3,7 @@ latest_url="https://api.github.com/repos/snatella/wine-runner-sc/releases/latest
 base_path="$HOME/.local/share/lutris/runners/wine" # Default location of Lutris wine runner
 download_options=($(curl -s "$latest_url" | grep -E "browser_download_url.*tgz" | cut -d \" -f4 | cut -d / -f9))
 install_complete=false;
+delete_complete=false;
 restart_lutris=2
 # Set restart_lutris=0 to not restart lutris after installing the runner
 # Set restart_lutris=1 to autorestart lutris after installing the runner
@@ -39,17 +40,17 @@ InstallWineRunner() {
 }
 
 DeleteRestartPrompt() {
-    if [ "$( pgrep lutris )" != "" ] && [ "$install_complete" = true ]; then
-        read -r -p "Do you want to delete intalled runners? <y/N> " prompt
-        if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
-            DeleteRunnersCheck
-        else
-            RestartLutrisCheck
-        fi
+    echo ""
+    read -r -p "Do you want to delete intalled runners? <y/N> " prompt
+    if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
+        DeleteRunnersCheck
+    else
+        RestartLutrisCheck
     fi
 }
 
 DeleteRunnersCheck() {
+    echo ""
     echo "Installed runners:"
     installed_versions=($(ls -d "$base_path"/*/))
     for((i=0;i<${#installed_versions[@]};i++)); do
@@ -81,9 +82,10 @@ DeleteRunnerPrompt() {
     read -r -p "Do you really want to permanently delete this runner? <y/N> " prompt
     if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
       DeleteRunner
+      delete_complete=true
     else
       echo "Operation canceled"
-      exit 0
+      DeleteRestartPrompt
     fi
 }
 
@@ -103,7 +105,7 @@ RestartLutris() {
 }
 
 RestartLutrisCheck() {
-  if [ "$( pgrep lutris )" != "" ] && [ "$install_complete" = true ]; then
+  if [ "$( pgrep lutris )" != "" ] && [ "$install_complete" = true || "$delete_complete" = true ]; then
     if [ $restart_lutris == 2 ]; then
       read -r -p "Do you want to restart Lutris? <y/N> " prompt
       if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
@@ -128,7 +130,7 @@ InstallationPrompt() {
       InstallWineRunner
     else
       echo "Operation canceled"
-      exit 0
+      DeleteRestartPrompt
     fi
   fi
 }
