@@ -39,13 +39,11 @@ InstallWineRunner() {
 }
 
 DeleteRestartPrompt() {
-    if [ "$( pgrep lutris )" != "" ] && [ "$install_complete" = true ]; then
-        read -r -p "Do you want to delete intalled runners? <y/N> " prompt
-        if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
-            DeleteRunnersCheck
-        else
-            RestartLutrisCheck
-        fi
+    read -r -p "Do you want to delete intalled runners? <y/N> " prompt
+    if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
+        DeleteRunnersCheck
+    else
+        RestartLutrisCheck
     fi
 }
 
@@ -81,9 +79,10 @@ DeleteRunnerPrompt() {
     read -r -p "Do you really want to permanently delete this runner? <y/N> " prompt
     if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
       DeleteRunner
+      install_complete=true
     else
       echo "Operation canceled"
-      exit 0
+      DeleteRunnerPrompt
     fi
 }
 
@@ -128,7 +127,7 @@ InstallationPrompt() {
       InstallWineRunner
     else
       echo "Operation canceled"
-      exit 0
+      DeleteRestartPrompt
     fi
   fi
 }
