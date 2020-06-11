@@ -35,10 +35,10 @@ InstallWineRunner() {
   curl -sL "$url" | tar xfzv - -C "$dest_path"
   install_complete=true
   echo "Installation completed"
-  Wannadelete
+  DeleteRestartPrompt
 }
 
-Wannadelete() {
+DeleteRestartPrompt() {
     if [ "$( pgrep lutris )" != "" ] && [ "$install_complete" = true ]; then
         read -r -p "Do you want to delete intalled runners? <y/N> " prompt
         if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
@@ -57,6 +57,7 @@ DeleteRunnersCheck() {
         folder=$(echo "${installed_versions[i]}" | rev | cut -d/ -f2 | rev)
         echo "$inumber. $folder"
     done
+    echo ""
     echo -n "Please choose an option to remove [1-${#installed_versions[@]}]:"
     read -ra option_remove
     
@@ -89,7 +90,7 @@ DeleteRunnerPrompt() {
 DeleteRunner() {
     rm -rf $remove_option
     echo "removed $remove_option"
-    Wannadelete
+    DeleteRestartPrompt
 }
 
 RestartLutris() {
