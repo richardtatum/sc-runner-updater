@@ -7,7 +7,15 @@ Primarly for use with Lutris.
 This was heavily inspired by flubberding's awesome [ProtonUpdater](https://github.com/flubberding/ProtonUpdater). Props to him for making a great script and allowing me to use it as a foundation for this one.
 
 ## Installation & Execution
-Just copy the `update.sh` file to your chosen directory and run `bash update.sh` to execute.
+
+For Arch users, this is available in the [AUR](https://aur.archlinux.org/packages/sc-updater-git/)
+
+```
+pacman -S sc-updater-git
+yay sc-updater-git
+```
+
+For non Arch-based distro's, just copy the `update.sh` file to your chosen directory and run `bash update.sh` to execute.
 
 If you are feeling extra spicy, run:
 
