@@ -35,7 +35,62 @@ InstallWineRunner() {
   curl -sL "$url" | tar xfzv - -C "$dest_path"
   install_complete=true
   echo "Installation completed"
-  RestartLutrisCheck
+  DeleteRestartPrompt
+}
+
+DeleteRestartPrompt() {
+    if [ "$( pgrep lutris )" != "" ] && [ "$install_complete" = true ]; then
+        read -r -p "Do you want to delete intalled runners? <y/N> " prompt
+        if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
+            DeleteRunnersCheck
+        else
+            RestartLutrisCheck
+        fi
+    fi
+}
+
+DeleteRunnersCheck() {
+    echo "Installed runners:"
+    installed_versions=($(ls -d "$base_path"/*/))
+    for((i=0;i<${#installed_versions[@]};i++)); do
+        inumber=$(("$i" + 1))
+        folder=$(echo "${installed_versions[i]}" | rev | cut -d/ -f2 | rev)
+        echo "$inumber. $folder"
+    done
+    echo ""
+    echo -n "Please choose an option to remove [1-${#installed_versions[@]}]:"
+    read -ra option_remove
+    
+    case "$option_remove" in
+        [1-9])
+        if (( $option_remove<= ${#installed_versions[@]} )); then
+            remove_option=${installed_versions[$option_remove -1]}
+            echo "removing $remove_option"
+            DeleteRunnerPrompt
+        else
+            echo "That is not a valid option"
+        fi
+        ;;
+        *)
+            echo "Not a valid option" 
+        ;;
+    esac
+}
+
+DeleteRunnerPrompt() {
+    read -r -p "Do you really want to permanently delete this runner? <y/N> " prompt
+    if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
+      DeleteRunner
+    else
+      echo "Operation canceled"
+      exit 0
+    fi
+}
+
+DeleteRunner() {
+    rm -rf $remove_option
+    echo "removed $remove_option"
+    DeleteRestartPrompt
 }
 
 RestartLutris() {
