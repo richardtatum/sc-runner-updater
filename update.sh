@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-latest_url="https://api.github.com/repos/snatella/wine-runner-sc/releases/latest"
+raw_url="https://api.github.com/repos/rawfoxDE/raw-wine/releases"
+snatella_url="https://api.github.com/repos/snatella/wine-runner-sc/releases"
 base_path="$HOME/.local/share/lutris/runners/wine" # Default location of Lutris wine runner
-download_options=($(curl -s "$latest_url" | grep -E "browser_download_url.*tgz" | cut -d \" -f4 | cut -d / -f9))
 install_complete=false;
 delete_complete=false;
 restart_lutris=2
+max_runners=20
 # Set restart_lutris=0 to not restart lutris after installing the runner
 # Set restart_lutris=1 to autorestart lutris after installing the runner
 # Set restart_lutris=2 to ask with a y/n prompt if Lutris is running
@@ -12,10 +13,13 @@ restart_lutris=2
 PrintRelease() {
   echo "----------Description----------"
   echo ""
-  echo "Tatumkhamun's SC Runner Updater"
+  echo "  LUG-Helper Runner Downloader"
   echo ""
-  echo "---------Latest Release---------"
-  curl -s $latest_url | grep -H -m1 "\"name\"" | cut -d = -f3 | cut -d \" -f4
+  echo "---------Latest Releases-------"
+  echo snatella:
+  curl -s $snatella_url | grep -H -m1 "\"name\"" | cut -d = -f3 | cut -d \" -f4
+  echo rawfox:
+  curl -s $raw_url | grep -H -m1 "\"name\"" | cut -d = -f3 | cut -d \" -f4
   echo "--------------------------------"
   echo ""
 
@@ -26,17 +30,21 @@ InstallWineRunner() {
   echo "$rsp" | grep -q 302 || {
     echo "$rsp"
     exit 1
-  }
-  
-  dest_path="$base_path/snatella-$version"
-  [ -d "$dest_path" ] || {
-    mkdir "$dest_path"
-    echo [Info] Created "$dest_path"
-  }
-  curl -sL "$url" | tar xfzv - -C "$dest_path"
-  install_complete=true
-  echo "Installation completed"
-  DeleteRestartPrompt
+    }
+    read ra
+    if test $latest_url = $snatella_url ; then
+        dest_path="$base_path/$version"
+        [ -d "$dest_path" ] || {
+            mkdir "$dest_path"
+            echo [Info] Created "$dest_path"
+        }
+    else
+    dest_path="$base_path"
+    fi
+    curl -sL "$url" | tar xfzv - -C "$dest_path"
+    install_complete=true
+    echo "Installation completed"
+    DeleteRestartPrompt
 }
 
 DeleteRestartPrompt() {
@@ -52,10 +60,10 @@ DeleteRestartPrompt() {
 DeleteRunnersCheck() {
     echo ""
     echo "Installed runners:"
-    installed_versions=($(ls -d "$base_path"/*/))
+    installed_versions=($(ls -d "$base_path"/*/))       #read all directorys in the base_path
     for((i=0;i<${#installed_versions[@]};i++)); do
         inumber=$(("$i" + 1))
-        folder=$(echo "${installed_versions[i]}" | rev | cut -d/ -f2 | rev)
+        folder=$(echo "${installed_versions[i]}" | rev | cut -d/ -f2 | rev) #reverse the order, cut after the second / and reverse again to only have the runner folder instead of the whole path
         echo "$inumber. $folder"
     done
     echo ""
@@ -82,7 +90,7 @@ DeleteRunnerPrompt() {
     read -r -p "Do you really want to permanently delete this runner? <y/N> " prompt
     if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]; then
       DeleteRunner
-      delete_complete=true
+      delete_complete=true          #used to track the need to restart Lutris
     else
       echo "Operation canceled"
       DeleteRestartPrompt
@@ -122,7 +130,7 @@ RestartLutrisCheck() {
 }
 
 InstallationPrompt() {
-  if [ ! -d "$base_path"/snatella-"$version" ]; then
+  if [ ! -d "$base_path"/"$version" ]; then
     InstallWineRunner
   else
     read -r -p "Do you want to try to download and (re)install this release? <y/N> " prompt
@@ -138,11 +146,37 @@ InstallationPrompt() {
 
 PrintRelease
 
+echo "Choose Contributor:"
+echo "1. snatella"
+echo "2. rawfox"
+echo ""
+read -ra set_url
+
+case $set_url in
+    1)
+    latest_url=$snatella_url
+    echo "searching $snatella_url ..."
+    download_options=($(curl -s "$latest_url" | grep -E "browser_download_url.*tgz" | cut -d \" -f4 | cut -d / -f9))
+    ;;
+    2)
+    latest_url=$raw_url
+    echo "searching $raw_url ..."
+    download_options=($(curl -s "$latest_url" | grep -E "browser_download_url.*tar.gz" | cut -d \" -f4 | cut -d / -f9 | cut -d . -f1-3))
+    ;;
+esac
+
+echo ""
 echo "Available runners:"
-for((i=0;i<${#download_options[@]};i++)); do
+if ((${#download_options[@]} > $max_runners)); then
+    runner_count=$max_runners
+else
+    runner_count=${#download_options[@]}
+fi
+
+for((i=0;i<$runner_count;i++)); do
   number=$(("$i" + 1))
   version=$(echo "${download_options[i]}" | sed 's/\.[^.]*$//')
-  if [ -d "$base_path"/snatella-"$version" ]; then
+  if [ -d "$base_path"/"$version" ]; then
     echo "$number. $version    [installed]"
   else
     echo "$number. $version"
@@ -150,12 +184,14 @@ for((i=0;i<${#download_options[@]};i++)); do
 done
 
 echo ""
-echo -n "Please choose an option to install [1-${#download_options[@]}]:"
+echo -n "Please choose an option to install [1-20]:"
 read -ra option_install
 
-case "$option_install" in
-  [1-9])
-    if (( $option_install <= ${#download_options[@]} )); then
+if ! [ "$option_install" -eq "$option_install" ] 2> /dev/null
+then
+    echo "Sorry integers only"
+else
+    if (( $option_install <= $runner_count )); then
       option=${download_options[$option_install -1]}
       version=$(echo "$option" | sed 's/\.[^.]*$//') 
       url=$(curl -s "$latest_url" | grep -E "browser_download_url.*$option" | cut -d \" -f4)
@@ -164,8 +200,4 @@ case "$option_install" in
     else
       echo "That is not a valid option"
     fi
-  ;;
-  *)
-    echo "Not a valid option" 
-  ;;
-esac
+fi
